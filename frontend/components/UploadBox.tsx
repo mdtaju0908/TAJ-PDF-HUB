@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import {
+  ArrowRight,
+  CloudUpload,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FileType2,
+  Presentation
+} from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -72,6 +81,39 @@ interface UploadBoxProps {
   enableToolSelection?: boolean;
   headline?: string;
   subline?: string;
+  ctaLabel?: string;
+  variant?: "default" | "tool" | "hero";
+  sourceFormatLabel?: string;
+  targetFormatLabel?: string;
+}
+
+type FormatKind = "pdf" | "image" | "word" | "ppt" | "excel" | "generic";
+
+function getFormatKind(label: string): FormatKind {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("pdf")) return "pdf";
+  if (["jpg", "jpeg", "png", "webp", "image"].some(x => normalized.includes(x))) return "image";
+  if (["doc", "docx", "word"].some(x => normalized.includes(x))) return "word";
+  if (["ppt", "pptx", "powerpoint"].some(x => normalized.includes(x))) return "ppt";
+  if (["xls", "xlsx", "excel"].some(x => normalized.includes(x))) return "excel";
+  return "generic";
+}
+
+function getFormatMeta(kind: FormatKind) {
+  switch (kind) {
+    case "pdf":
+      return { Icon: FileText, iconClass: "text-red-500", chipClass: "bg-red-50 text-red-600" };
+    case "image":
+      return { Icon: FileImage, iconClass: "text-amber-500", chipClass: "bg-amber-50 text-amber-600" };
+    case "word":
+      return { Icon: FileType2, iconClass: "text-blue-600", chipClass: "bg-blue-50 text-blue-700" };
+    case "ppt":
+      return { Icon: Presentation, iconClass: "text-orange-500", chipClass: "bg-orange-50 text-orange-600" };
+    case "excel":
+      return { Icon: FileSpreadsheet, iconClass: "text-emerald-600", chipClass: "bg-emerald-50 text-emerald-700" };
+    default:
+      return { Icon: FileText, iconClass: "text-slate-500", chipClass: "bg-slate-100 text-slate-600" };
+  }
 }
 
 export function UploadBox({
@@ -81,7 +123,11 @@ export function UploadBox({
   busy,
   enableToolSelection = false,
   headline,
-  subline
+  subline,
+  ctaLabel,
+  variant = "default",
+  sourceFormatLabel,
+  targetFormatLabel
 }: UploadBoxProps) {
   const router = useRouter();
   const setUploadedFiles = useAppStore(s => s.setUploadedFiles);
@@ -98,6 +144,12 @@ export function UploadBox({
     [selectedFile]
   );
   const actions = useMemo(() => toolActions[fileKind], [fileKind]);
+  const sourceKind = sourceFormatLabel ? getFormatKind(sourceFormatLabel) : null;
+  const targetKind = targetFormatLabel ? getFormatKind(targetFormatLabel) : null;
+  const sourceMeta = sourceKind ? getFormatMeta(sourceKind) : null;
+  const targetMeta = targetKind ? getFormatMeta(targetKind) : null;
+  const showCategoryVisual =
+    variant === "tool" && !!sourceFormatLabel && !!targetFormatLabel && !!sourceMeta && !!targetMeta;
 
   const closeModal = useCallback(() => {
     setModalVisible(false);
@@ -179,21 +231,92 @@ export function UploadBox({
       <div
         {...getRootProps()}
         className={cn(
-          "group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all hover:shadow-lg",
+          "group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all duration-300 hover:shadow-lg",
+          variant === "tool" &&
+            "rounded-3xl border-indigo-300 bg-white px-6 py-14 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-sm",
+          variant === "hero" &&
+            "rounded-[28px] border-slate-200 bg-white px-8 py-12 shadow-[0_20px_60px_-28px_rgba(15,23,42,0.35)] hover:-translate-y-0.5 hover:border-indigo-200",
           isDragActive && "shadow-soft",
           busy && "cursor-default opacity-70"
         )}
       >
+        {(variant === "tool" || variant === "hero") && (
+          <div className="pointer-events-none absolute inset-0">
+            <div
+              className={cn(
+                "absolute inset-2 rounded-[24px] border border-dashed transition-all duration-300",
+                variant === "tool"
+                  ? "border-indigo-300/0 group-hover:border-indigo-300/80"
+                  : "border-slate-200 group-hover:border-indigo-200"
+              )}
+            />
+            <div className="absolute left-[-40%] top-0 h-[2px] w-1/3 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 transition-all duration-700 group-hover:left-[110%] group-hover:opacity-100" />
+            <span className="absolute left-4 top-4 h-2 w-2 rounded-full bg-indigo-300/0 transition-all duration-300 group-hover:bg-indigo-300/80" />
+            <span className="absolute bottom-4 right-4 h-2 w-2 rounded-full bg-violet-300/0 transition-all duration-300 group-hover:bg-violet-300/80" />
+          </div>
+        )}
         <input {...getInputProps()} />
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-rose-500 via-red-500 to-orange-400 text-white shadow-md">
-          <span className="text-xl">⬆</span>
-        </div>
-        <p className="text-sm font-medium text-slate-900">
+        {showCategoryVisual ? (
+          <div className="mb-6 flex items-center justify-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition-all duration-300 group-hover:bg-indigo-50/70">
+            <div className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
+              <sourceMeta.Icon className={cn("h-9 w-9", sourceMeta.iconClass)} />
+              <span className={cn("rounded-md px-2 py-0.5 text-[11px] font-semibold", sourceMeta.chipClass)}>
+                {sourceFormatLabel}
+              </span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-slate-400 transition-transform duration-300 group-hover:translate-x-1" />
+            <div className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-transform duration-300 group-hover:translate-y-0.5">
+              <targetMeta.Icon className={cn("h-9 w-9", targetMeta.iconClass)} />
+              <span className={cn("rounded-md px-2 py-0.5 text-[11px] font-semibold", targetMeta.chipClass)}>
+                {targetFormatLabel}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "mb-3 flex h-12 w-12 items-center justify-center text-indigo-500",
+              variant === "tool" && "mb-5 h-20 w-20 text-violet-500",
+              variant === "hero" && "mb-6 h-16 w-16 rounded-2xl bg-indigo-50 text-indigo-600"
+            )}
+          >
+            <CloudUpload
+              className={cn(
+                "h-10 w-10 stroke-[2.2]",
+                variant === "tool" && "h-16 w-16 stroke-[2.1]",
+                variant === "hero" && "h-9 w-9 stroke-[2.2]"
+              )}
+            />
+          </div>
+        )}
+        <p
+          className={cn(
+            "text-sm font-medium text-slate-900",
+            variant === "tool" && "text-3xl",
+            variant === "hero" && "text-[30px] font-semibold tracking-tight"
+          )}
+        >
           {busy ? "Processing files..." : headline || "Drag & drop your files here"}
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p
+          className={cn(
+            "mt-1 text-xs text-slate-500",
+            variant === "tool" && "mt-3 text-base",
+            variant === "hero" && "mt-3 text-base text-slate-600"
+          )}
+        >
           {subline || "or click to browse files from your device"}
         </p>
+        <span
+          className={cn(
+            "mt-4 rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white transition-all duration-300",
+            variant === "tool" && "mt-6 rounded-xl bg-indigo-600 px-7 py-3 text-sm group-hover:bg-indigo-700",
+            variant === "hero" &&
+              "mt-7 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-3 text-sm font-semibold shadow-md shadow-indigo-500/30 group-hover:from-indigo-700 group-hover:to-violet-700"
+          )}
+        >
+          {busy ? "Please wait..." : ctaLabel || "Select File"}
+        </span>
         {error ? <p className="mt-3 text-xs font-medium text-rose-600">{error}</p> : null}
       </div>
 
