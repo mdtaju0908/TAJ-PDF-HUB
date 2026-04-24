@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { TOOL_DEFINITIONS, type PdfToolId } from "@/lib/tools";
 import { cn } from "@/lib/utils";
-import { useAppStore } from "@/lib/store";
 
 const iconMap: Record<PdfToolId, LucideIcon> = {
   merge: Combine,
@@ -74,21 +73,28 @@ export function ToolCard({ toolId }: ToolCardProps) {
     <Link href={`/tools/${tool.id}`} className="group block focus:outline-none">
       <div
         className={cn(
-          "h-full cursor-pointer rounded-2xl p-6 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-md",
-          tool.cardBg ?? "bg-white"
+          "h-full cursor-pointer overflow-hidden rounded-2xl border p-5 shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)] transition-all duration-300 ease-out",
+          "hover:-translate-y-1 hover:shadow-[0_16px_40px_-18px_rgba(79,70,229,0.35)]",
+          "focus-visible:ring-2 focus-visible:ring-indigo-400/50",
+          tool.borderColor ?? "border-slate-200",
+          tool.bgLight ?? "bg-white"
         )}
       >
-        <div className="relative flex flex-col">
+        <div className={cn("mb-4 h-1 w-full rounded-full bg-gradient-to-r", tool.gradient)} />
+        <div className="relative flex h-full flex-col">
           <div className="mb-4 flex items-center justify-between">
-            <div className={cn(
-              "rounded-xl p-2.5 backdrop-blur-sm transition-colors",
-              tool.iconBg ?? "bg-white/40 group-hover:bg-white/60"
-            )}>
-              <Icon className={cn("h-6 w-6", tool.iconColor ?? "text-slate-800")} strokeWidth={2} />
+            <div
+              className={cn(
+                "rounded-xl border border-slate-200/80 p-2.5 shadow-sm backdrop-blur-sm transition-all",
+                "ring-1 ring-white/70 group-hover:scale-105",
+                tool.iconBg ?? "bg-white/80"
+              )}
+            >
+              <Icon className={cn("h-6 w-6", tool.iconColor ?? "text-slate-800")} strokeWidth={2.3} />
             </div>
           </div>
-          <h3 className="font-semibold text-slate-900">{tool.title}</h3>
-          <p className="mt-1 text-xs text-slate-600 line-clamp-2">{tool.description}</p>
+          <h3 className="text-xl font-semibold tracking-tight text-slate-900">{tool.title}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600 line-clamp-2">{tool.description}</p>
         </div>
       </div>
     </Link>
@@ -103,7 +109,7 @@ export function ToolGrid({ limit }: ToolGridProps) {
   const tools = limit ? TOOL_DEFINITIONS.slice(0, limit) : TOOL_DEFINITIONS;
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {tools.map(tool => (
         <ToolCard key={tool.id} toolId={tool.id} />
       ))}
