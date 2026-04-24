@@ -5,7 +5,7 @@
 <h1 align="center">TAJ PDF DOCS</h1>
 
 **All-in-One PDF Tools Platform**
-Fast, secure, and easy-to-use tools to manage your documents in seconds.
+> Fast, secure, and easy-to-use tools to manage your documents in seconds.
 
 ---
 
@@ -54,9 +54,9 @@ Fast, secure, and easy-to-use tools to manage your documents in seconds.
 * 💡 Aspiring Software Engineer
 * 🤖 AI/ML Enthusiast
 * ☁️ AWS & Cloud Computing
-* 🌐 Web Developer
+* 🌐 App & Web Developer
 
-Originally from **Samastipur, Bihar**, he builds real-world projects and shares his learning journey with the community.
+> Originally from **Samastipur, Bihar**, he builds real-world projects and shares his learning journey with the community.
 
 ---
 
